@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product Management</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <title>产品管理系统 - MongoDB 操作演示</title>
+<h1>产品管理系统 - MongoDB 操作演示</h1>
+
+    <div id="message" style="color: green; font-weight: bold;"></div>
+    <div>
+      <div>产品名称: <input id="name" /></div>
+      <div>描述: <input id="description" /></div>
+      <div>价格: <input type="number" id="price" /></div>
+      <div>库存: <input type="number" id="quantity" /></div>
+      <div>分类: <select id="category"></select></div>
+      <div><button id="addProduct">添加产品</button></div>
+    </div>
+    <hr>
+    <div>
+      <button id="updateProduct">更新产品</button>
+    </div>
+    <hr>
+    <div>
+      <button id="prevPage">上一页</button>
+      <span id="currentPage">1</span>
+      <button id="nextPage">下一页</button>
+    </div>
+    <hr>
+    <table border="1">
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>产品名称</td>
+          <td>描述</td>
+          <td>价格</td>
+          <td>库存</td>
+          <td>分类</td>
+          <td>操作</td>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      let selectedProductId = null;
+      let currentPage = 1;
+
+      // 显示消息
+      function showMessage(message, isError = false) {
+        const messageDiv = document.querySelector("#message");
+        messageDiv.style.color = isError ? "red" : "green";
+        messageDiv.textContent = message;
+        setTimeout(() => (messageDiv.textContent = ""), 3000);
+      }
+
+      // 加载分类数据
+      function loadCategories() {
+        fetch("/api/categories")
+          .then((res) => res.json())
+          .then((categories) => {
+            const categorySelect = document.querySelector("#category");
+            categorySelect.innerHTML = categories
+              .map((cat) => `<option value="${cat.name}">${cat.name}</option>`)
+              .join("");
+          })
+          .catch((err) => console.error("加载分类失败：", err));
+      }
+
+      // 加载产品数据
+      function loadProducts() {
+        fetch(`/api/product?page=${currentPage}&limit=10`)
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.querySelector("tbody");
+            // 确保 data.products 是一个数组
+            tbody.innerHTML = data.products
+              .map(
+                (item) => `
+                <tr>
+                  <td>${item._id}</td>
+                  <td>${item.name || "undefined"}</td>
+                  <td>${item.description || "undefined"}</td>
+                  <td>${item.price || "null"}</td>
+                  <td>${item.quantity || "null"}</td>
+                  <td>${item.category || "undefined"}</td>
+                  <td>
+                    <button onclick="selectProduct('${item._id}', '${item.name}', '${item.description}', '${item.price}', '${item.quantity}', '${item.category}')">选择</button>
+                    <button onclick="deleteProduct('${item._id}')">删除</button>
+                  </td>
+                </tr>
+              `
+              )
+              .join("");
+            document.querySelector("#currentPage").textContent = currentPage;
+          })
+          .catch((err) => console.error("加载产品失败：", err));
+      }
+
+      // 翻页功能
+      document.querySelector("#prevPage").onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          loadProducts();
+        }
+      };
+
+      document.querySelector("#nextPage").onclick = () => {
+        currentPage++;
+        loadProducts();
+      };
+
+      // 选择产品进行编辑
+      function selectProduct(id, name, description, price, quantity, category) {
+        selectedProductId = id;
+        document.querySelector("#name").value = name;
+        document.querySelector("#description").value = description;
+        document.querySelector("#price").value = price;
+        document.querySelector("#quantity").value = quantity;
+        document.querySelector("#category").value = category;
+      }
+
+      // 删除产品
+      function deleteProduct(productId) {
+        if (!confirm("确认删除该产品吗？")) return;
+
+        fetch(`/api/product/${productId}`, { method: "DELETE" })
+          .then((res) => {
+            if (!res.ok) throw new Error("删除失败");
+            return res.json();
+          })
+          .then(() => {
+            showMessage("删除成功！");
+            loadProducts();
+          })
+          .catch((err) => showMessage("删除失败：" + err.message, true));
+      }
+
+      // 添加产品
+      document.querySelector("#addProduct").onclick = () => {
+        const name = document.querySelector("#name").value;
+        const description = document.querySelector("#description").value;
+        const price = parseFloat(document.querySelector("#price").value);
+        const quantity = parseInt(document.querySelector("#quantity").value);
+        const category = document.querySelector("#category").value;
+
+        if (!name || price <= 0 || quantity < 0) {
+          showMessage("请输入有效的产品信息！", true);
+          return;
+        }
+
+        fetch("/api/product", {
+          method: "POST",
+          body: JSON.stringify({ name, description, price, quantity, category }),
+          headers: { "Content-Type": "application/json" },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("添加失败");
+            return res.json();
+          })
+          .then(() => {
+            showMessage("添加成功！");
+            loadProducts();
+          })
+          .catch((err) => showMessage("添加失败：" + err.message, true));
+      };
+
+      // 更新产品
+      document.querySelector("#updateProduct").onclick = () => {
+        if (!selectedProductId) {
+          showMessage("请先选择要更新的产品！", true);
+          return;
+        }
+
+        const name = document.querySelector("#name").value;
+        const description = document.querySelector("#description").value;
+        const price = parseFloat(document.querySelector("#price").value);
+        const quantity = parseInt(document.querySelector("#quantity").value);
+        const category = document.querySelector("#category").value;
+
+        fetch(`/api/product/${selectedProductId}`, {
+          method: "PUT",
+          body: JSON.stringify({ name, description, price, quantity, category }),
+          headers: { "Content-Type": "application/json" },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("更新失败");
+            return res.json();
+          })
+          .then(() => {
+            showMessage("更新成功！");
+            loadProducts();
+          })
+          .catch((err) => showMessage("更新失败：" + err.message, true));
+      };
+
+      // 页面加载时调用
+      document.addEventListener("DOMContentLoaded", () => {
+        loadCategories();  // 加载分类
+        loadProducts();    // 加载产品列表
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+/* 设置全局字体和背景 */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 20px;
+  color: #333;
+}
+
+/* 标题样式 */
+h1 {
+  text-align: center;
+  color: #007bff;
+}
+
+/* 消息提示样式 */
+#message {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 表单容器样式 */
+div {
+  margin-bottom: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 输入框样式 */
+input, select {
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  width: calc(100% - 20px);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* 按钮样式 */
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* 表格样式 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+thead {
+  background-color: #007bff;
+  color: #fff;
+}
+
+td, th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+  background-color: #e2e6ea;
+}
+
+/* 分页按钮 */
+#prevPage, #nextPage {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#prevPage:hover, #nextPage:hover {
+  background-color: #0056b3;
+}
